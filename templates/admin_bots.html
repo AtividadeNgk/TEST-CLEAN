@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciamento de Bots - Painel Admin</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #0f0f0f;
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: #1a1a1a;
+            padding: 20px;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+        
+        .back-btn {
+            background: #333;
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+        
+        .back-btn:hover {
+            background: #444;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .stat-card {
+            background: #1a1a1a;
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid #333;
+            text-align: center;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-2px);
+            border-color: #555;
+        }
+        
+        .stat-card h2 {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .stat-card p {
+            color: #888;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .stat-card.active h2 { color: #4CAF50; }
+        .stat-card.inactive h2 { color: #FF9800; }
+        
+        .controls {
+            background: #1a1a1a;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+        }
+        
+        .search-box input {
+            width: 100%;
+            padding: 12px 20px;
+            background: #0f0f0f;
+            border: 1px solid #333;
+            border-radius: 6px;
+            color: white;
+            font-size: 14px;
+        }
+        
+        .search-box input:focus {
+            outline: none;
+            border-color: #555;
+        }
+        
+        .filter-select {
+            padding: 12px 20px;
+            background: #0f0f0f;
+            border: 1px solid #333;
+            border-radius: 6px;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        .refresh-btn {
+            padding: 12px 20px;
+            background: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+        
+        .refresh-btn:hover {
+            background: #1976D2;
+        }
+        
+        .bots-list {
+            display: grid;
+            gap: 15px;
+        }
+        
+        .bot-card {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s;
+        }
+        
+        .bot-card:hover {
+            border-color: #555;
+            transform: translateX(5px);
+        }
+        
+        .bot-info {
+            flex: 1;
+        }
+        
+        .bot-info h3 {
+            font-size: 18px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .bot-info p {
+            color: #888;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        
+        .bot-status {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .status-active {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .status-inactive {
+            background: #FF9800;
+            color: white;
+        }
+        
+        .bot-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .ban-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s;
+            background: #F44336;
+            color: white;
+        }
+        
+        .ban-btn:hover {
+            background: #D32F2F;
+            transform: scale(1.05);
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #888;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px;
+            color: #666;
+        }
+        
+        .empty-state h3 {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            transform: translateX(400px);
+            transition: transform 0.3s;
+            z-index: 1000;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.success {
+            background: #4CAF50;
+        }
+        
+        .notification.error {
+            background: #F44336;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🤖 Gerenciamento de Bots</h1>
+        <a href="/" class="back-btn">← Voltar ao Painel</a>
+    </div>
+    
+    <div class="container">
+        <div class="stats">
+            <div class="stat-card">
+                <h2 id="total-bots">0</h2>
+                <p>Total de Bots</p>
+            </div>
+            <div class="stat-card active">
+                <h2 id="active-bots">0</h2>
+                <p>Bots Ativos</p>
+            </div>
+            <div class="stat-card inactive">
+                <h2 id="inactive-bots">0</h2>
+                <p>Bots Inativos</p>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <div class="search-box">
+                <input type="text" id="search" placeholder="Buscar por username, ID ou owner...">
+            </div>
+            <select id="filter" class="filter-select">
+                <option value="all">Todos os Bots</option>
+                <option value="active">Apenas Ativos</option>
+                <option value="inactive">Apenas Inativos</option>
+            </select>
+            <button class="refresh-btn" onclick="loadBots()">🔄 Atualizar</button>
+        </div>
+        
+        <div id="bots-list" class="bots-list">
+            <div class="loading">Carregando bots...</div>
+        </div>
+    </div>
+    
+    <div id="notification" class="notification"></div>
+    
+    <script>
+        let allBots = [];
+        let searchTimeout;
+        
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type} show`;
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+        
+        async function loadBots() {
+            try {
+                const response = await fetch('/api/bots/active');
+                if (!response.ok) throw new Error('Erro ao carregar bots');
+                
+                allBots = await response.json();
+                updateStats();
+                renderBots();
+            } catch (error) {
+                showNotification('Erro ao carregar bots', 'error');
+                console.error(error);
+            }
+        }
+        
+        function updateStats() {
+            const total = allBots.length;
+            const active = allBots.filter(b => b.status === 'active').length;
+            const inactive = allBots.filter(b => b.status === 'inactive').length;
+            
+            document.getElementById('total-bots').textContent = total;
+            document.getElementById('active-bots').textContent = active;
+            document.getElementById('inactive-bots').textContent = inactive;
+        }
+        
+        function filterBots() {
+            const searchTerm = document.getElementById('search').value.toLowerCase();
+            const filterValue = document.getElementById('filter').value;
+            
+            return allBots.filter(bot => {
+                // Filtro de busca
+                const matchesSearch = !searchTerm || 
+                    bot.username.toLowerCase().includes(searchTerm) ||
+                    bot.id.includes(searchTerm) ||
+                    bot.owner.includes(searchTerm);
+                
+                // Filtro de status
+                let matchesFilter = true;
+                if (filterValue === 'active') {
+                    matchesFilter = bot.status === 'active';
+                } else if (filterValue === 'inactive') {
+                    matchesFilter = bot.status === 'inactive';
+                }
+                
+                return matchesSearch && matchesFilter;
+            });
+        }
+        
+        function renderBots() {
+            const filteredBots = filterBots();
+            const listElement = document.getElementById('bots-list');
+            
+            if (filteredBots.length === 0) {
+                listElement.innerHTML = `
+                    <div class="empty-state">
+                        <h3>Nenhum bot encontrado</h3>
+                        <p>Tente ajustar os filtros de busca</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            listElement.innerHTML = filteredBots.map(bot => `
+                <div class="bot-card">
+                    <div class="bot-info">
+                        <h3>
+                            @${bot.username}
+                            ${bot.status === 'active' ? '🟢' : '🟠'}
+                        </h3>
+                        <p>
+                            <strong>ID:</strong> ${bot.id} | 
+                            <strong>Owner:</strong> ${bot.owner} |
+                            <strong>Token:</strong> ${bot.token.substring(0, 20)}...
+                        </p>
+                        <span class="bot-status status-${bot.status}">
+                            ${bot.status === 'active' ? 'ATIVO' : 'INATIVO'}
+                        </span>
+                    </div>
+                    <div class="bot-actions">
+                        <button class="ban-btn" onclick="banBot('${bot.id}')">
+                            🗑️ Remover Bot
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        async function banBot(botId) {
+            const bot = allBots.find(b => b.id === botId);
+            if (!bot) return;
+            
+            const confirmMessage = `Tem certeza que deseja REMOVER PERMANENTEMENTE o bot @${bot.username}?\n\n` +
+                                  `⚠️ Esta ação NÃO pode ser desfeita!\n` +
+                                  `O bot será completamente removido do sistema.`;
+            
+            if (!confirm(confirmMessage)) return;
+            
+            try {
+                const response = await fetch(`/api/bot/ban/${botId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                if (!response.ok) throw new Error('Erro ao remover bot');
+                
+                showNotification(`Bot @${bot.username} removido com sucesso!`, 'success');
+                await loadBots();
+            } catch (error) {
+                showNotification('Erro ao remover bot', 'error');
+                console.error(error);
+            }
+        }
+        
+        // Event listeners
+        document.getElementById('search').addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => renderBots(), 300);
+        });
+        
+        document.getElementById('filter').addEventListener('change', renderBots);
+        
+        // Carrega bots ao iniciar
+        loadBots();
+        
+        // Atualiza a cada 10 segundos
+        setInterval(loadBots, 10000);
+    </script>
+</body>
+</html>

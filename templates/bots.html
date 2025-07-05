@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application List</title>
+    <style>
+
+        /* styles.css */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+}
+
+.container {
+    width: 80%;
+    margin: 20px auto;
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+    text-align: center;
+    color: #333;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+th {
+    background-color: #007BFF;
+    color: white;
+}
+
+tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+tr:hover {
+    background-color: #f1f1f1;
+}
+
+button {
+    padding: 5px 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+button.view {
+    background-color: #28a745;
+    color: white;
+}
+
+button.delete {
+    background-color: #dc3545;
+    color: white;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+.modal-content {
+    background-color: #fff;
+    margin: 15% auto;
+    padding: 20px;
+    border-radius: 8px;
+    width: 50%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+.close-button {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    color: #aaa;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close-button:hover {
+    color: #000;
+}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <table id="appTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Token</th>
+                    <th>Admin</th>
+                    <th>URL</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Rows will be populated dynamically -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Modal for viewing details -->
+    <div id="viewModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>Detalhes do bot</h2>
+            <p><strong>Texto 1:</strong> <span id="modalText1"></span></p>
+            <p><strong>Texto 2:</strong> <span id="modalText2"></span></p>
+        </div>
+    </div>
+
+    <script>
+        // script.js
+document.addEventListener('DOMContentLoaded', () => {
+    const appTableBody = document.querySelector('#appTable tbody');
+    const viewModal = document.getElementById('viewModal');
+    const modalText1 = document.getElementById('modalText1');
+    const modalText2 = document.getElementById('modalText2');
+    const closeModal = document.querySelector('.close-button');
+
+    // Fetch the list of applications
+    fetch('/bots')
+        .then(response => response.json())
+        .then(data => {
+            data.forEach(app => {
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td>${app.id}</td>
+                    <td>${app.token}</td>
+                    <td>${app.owner}</td>
+                    <td><a target="_blank" href="${app.url}">${app.url}</a></td>
+                    <td>
+                        <button class="view" data-id="${app.id}" data-text1="${app.data.texto1}" data-text2="${app.data.texto2}">Ver</button>
+                        <button class="delete" data-id="${app.id}">Deletar</button>
+                    </td>
+                `;
+
+                appTableBody.appendChild(row);
+            });
+        })
+        .catch(err => console.error('Error fetching bots:', err));
+
+    // Event delegation for buttons
+    appTableBody.addEventListener('click', (e) => {
+        if (e.target.classList.contains('view')) {
+            const text1 = e.target.getAttribute('data-text1');
+            const text2 = e.target.getAttribute('data-text2');
+
+            modalText1.textContent = text1;
+            modalText2.textContent = text2;
+            viewModal.style.display = 'block';
+        } else if (e.target.classList.contains('delete')) {
+            const id = e.target.getAttribute('data-id');
+
+            fetch(`/delete/${id}`, { method: 'DELETE' })
+                .then(response => {
+                    if (response.ok) {
+                        e.target.closest('tr').remove();
+                    } else {
+                        console.error('Failed to delete application.');
+                    }
+                })
+                .catch(err => console.error('Error deleting application:', err));
+        }
+    });
+
+    // Close modal
+    closeModal.addEventListener('click', () => {
+        viewModal.style.display = 'none';
+    });
+
+    window.addEventListener('click', (e) => {
+        if (e.target === viewModal) {
+            viewModal.style.display = 'none';
+        }
+    });
+});
+
+    </script>
+</body>
+</html>
